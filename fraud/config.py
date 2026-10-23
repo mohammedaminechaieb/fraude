@@ -1,8 +1,9 @@
 """Constantes partagées : schéma Sparkov, chemins et paramètres métier par défaut."""
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-ARTIFACTS_DIR = ROOT / "artifacts"
+ARTIFACTS_DIR = Path(os.environ.get("FRAUD_ARTIFACTS_DIR", ROOT / "artifacts"))
 DATA_DIR = ROOT / "data"
 
 # Schéma du simulateur Sparkov (Kaggle « kartik2112/fraud-detection »)

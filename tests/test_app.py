@@ -27,3 +27,12 @@ def test_prep_page():
     at.button[0].click().run()
     assert not at.exception
     assert any("Stratégie retenue" in s.value for s in at.success)
+
+
+def test_model_page_trains():
+    at = _app_with_data()
+    at.sidebar.radio[0].set_value("3 · Modélisation").run()
+    at.selectbox[0].set_value("none")
+    at.button[0].click().run()
+    assert not at.exception
+    assert any("PR-AUC" in str(df.value.columns.tolist()) for df in at.dataframe)

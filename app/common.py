@@ -60,3 +60,21 @@ def get_prepared():
         st.session_state["prep"] = prep
         st.session_state.pop("imbalance", None)
     return prep
+
+
+def get_bundle():
+    """Artefacts d'entraînement : session courante, sinon fichier artifacts/bundle.joblib."""
+    from fraud.pipeline import BUNDLE_PATH, load_bundle
+
+    if "bundle" not in st.session_state and BUNDLE_PATH.exists():
+        st.session_state["bundle"] = load_bundle(BUNDLE_PATH)
+        st.session_state["bundle_origin"] = f"fichier {BUNDLE_PATH.name}"
+    return st.session_state.get("bundle")
+
+
+def require_bundle():
+    bundle = get_bundle()
+    if bundle is None:
+        st.info("Entraînez d'abord les modèles depuis la page **3 · Modélisation**.")
+        st.stop()
+    return bundle
