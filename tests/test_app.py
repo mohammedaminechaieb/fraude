@@ -55,3 +55,10 @@ def test_eval_page_reacts_to_sliders():
     at.select_slider[0].set_value(float(at.select_slider[0].options[-1])).run()  # seuil maximal → moins d'alertes
     assert not at.exception
     assert int(at.metric[0].value.replace(" ", "")) <= int(alerts_before.replace(" ", ""))
+
+
+def test_explain_page():
+    at = _app_with_bundle()
+    at.sidebar.radio[0].set_value("5 · Explications (XAI)").run()
+    assert not at.exception
+    assert any("Codes motifs" in m.value for m in at.markdown)

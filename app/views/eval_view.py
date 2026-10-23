@@ -43,9 +43,9 @@ def render():
     val, frame = frames["val"], frames[split]
     tau_opt = optimal_threshold(val[TARGET], val[col], val[AMOUNT_COL], alert_cost)
 
-    # curseur de seuil : quantiles des scores de validation + le seuil optimal
+    # curseur de seuil : 10 % des scores de validation les plus élevés + le seuil optimal
     tau_default = _round_down(tau_opt)
-    grid = sorted({_round_down(v) for v in np.quantile(val[col], np.linspace(0.5, 1, 801))} | {tau_default})
+    grid = sorted({_round_down(v) for v in np.quantile(val[col], np.linspace(0.9, 1, 1001))} | {tau_default})
     tau = st.select_slider("Seuil d'alerte τ (alerte si score ≥ τ) — initialisé au coût minimal en validation",
                            options=grid, value=tau_default, format_func=lambda v: f"{v:.6g}", key=f"tau::{model}")
 
@@ -79,8 +79,8 @@ def render():
     fig.add_scatter(x=curve.alerts, y=curve.cost, name="coût total", mode="lines")
     fig.add_scatter(x=curve.alerts, y=curve.missed_amount, name="fraudes manquées", mode="lines", line_dash="dot")
     fig.add_scatter(x=curve.alerts, y=curve.review_cost, name="coût d'analyse", mode="lines", line_dash="dot")
-    fig.add_vline(x=m["alerts"], line_color="red", annotation_text="seuil courant")
-    fig.add_vline(x=k, line_color="gray", line_dash="dash", annotation_text="budget k")
+    fig.add_vline(x=m["alerts"], line_color="red", annotation_text="seuil courant", annotation_position="top left")
+    fig.add_vline(x=k, line_color="gray", line_dash="dash", annotation_text="budget k", annotation_position="top right")
     fig.update_layout(title="Coût métier selon le nombre d'alertes", xaxis_title="alertes", yaxis_title="coût")
     c1.plotly_chart(fig, width="stretch")
 

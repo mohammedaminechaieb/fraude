@@ -11,7 +11,7 @@ if str(ROOT) not in sys.path:
 
 import streamlit as st  # noqa: E402
 
-from app.views import data_view, eval_view, model_view, prep_view  # noqa: E402
+from app.views import data_view, eval_view, explain_view, model_view, prep_view  # noqa: E402
 
 st.set_page_config(page_title="Détection de fraude explicable", page_icon="🛡️", layout="wide")
 
@@ -20,6 +20,7 @@ PAGES = {
     "2 · Préparation": prep_view.render,
     "3 · Modélisation": model_view.render,
     "4 · Évaluation et seuil": eval_view.render,
+    "5 · Explications (XAI)": explain_view.render,
 }
 
 st.sidebar.title("🛡️ Fraude explicable")
