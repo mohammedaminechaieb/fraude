@@ -1,5 +1,11 @@
-"""Page Module 6 — API FastAPI (démonstration en processus, sans serveur)."""
+"""Page Module 6 — API FastAPI.
+
+Si FRAUD_API_URL est défini (variable d'environnement ou secret Streamlit), la page interroge l'API
+déployée (par exemple sur Render) ; sinon, ou si elle est injoignable, une copie de l'API tourne dans
+le processus de l'application.
+"""
 import json
+import os
 
 import pandas as pd
 import streamlit as st
@@ -22,9 +28,38 @@ def _payload(row: pd.Series) -> dict:
     return d
 
 
-def render():
+def _api_url() -> str:
+    url = os.environ.get("FRAUD_API_URL", "")
+    if not url:
+        try:
+            url = st.secrets.get("FRAUD_API_URL", "")
+        except Exception:  # aucun fichier de secrets
+            url = ""
+    return url.strip().rstrip("/")
+
+
+def _client(bundle):
+    """Client HTTP vers l'API déployée, ou client en processus en repli."""
     from api.main import create_app
 
+    url = _api_url()
+    if url:
+        import httpx
+
+        client = httpx.Client(base_url=url, timeout=120)
+        try:
+            with st.spinner("Connexion à l'API déployée (jusqu'à 1 min si elle sort de veille)…"):
+                client.get("/health").raise_for_status()
+            st.success(f"API déployée : [{url}/docs]({url}/docs)")
+            return client
+        except httpx.HTTPError as exc:
+            st.warning(f"API déployée injoignable ({exc}) : démonstration avec l'API intégrée.")
+    else:
+        st.caption("Démonstration avec l'API intégrée. Définir `FRAUD_API_URL` pour interroger l'API déployée.")
+    return TestClient(create_app(bundle))
+
+
+def render():
     st.header("6 · API FastAPI")
     bundle = require_bundle()
     st.markdown("""
@@ -40,7 +75,7 @@ Lancement : `uvicorn api.main:app --reload` puis documentation interactive sur `
 L'API est **sans état** : l'historique de la carte (`history`) sert à calculer les variables de vélocité et
 d'écart au profil, exactement comme hors ligne.
 """)
-    client = TestClient(create_app(bundle))
+    client = _client(bundle)
     st.subheader("GET /model")
     st.json(client.get("/model").json(), expanded=False)
 
