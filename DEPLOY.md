@@ -54,6 +54,15 @@ Sans Blueprint (*New → Web Service*), saisir à la main :
 
 L'offre gratuite s'endort après 15 min sans requête : la première requête suivante prend ~1 min.
 
+## Relier l'application à l'API déployée
+
+Dans Streamlit Cloud : *Settings → Secrets* :
+```toml
+FRAUD_API_URL = "https://fraude-api.onrender.com"   # l'URL de votre service Render
+```
+La page **6 · API** interroge alors l'API Render (lien vers `/docs` affiché). Sans ce secret, ou si l'API est
+injoignable, elle utilise une copie intégrée de l'API.
+
 ## 3. Docker (serveur personnel, VPS, autre hébergeur)
 
 ```bash
@@ -79,5 +88,6 @@ Spaces *Docker*) fonctionne : il fournit `PORT`, il suffit d'ajouter `SERVICE=ap
 | `FRAUD_AUTOTRAIN` | 1 | `0` désactive l'auto-entraînement de l'application |
 | `FRAUD_ARTIFACTS_DIR` | `artifacts/` | dossier du modèle entraîné |
 | `FRAUD_BUNDLE` | `artifacts/bundle.joblib` | modèle chargé par l'API |
+| `FRAUD_API_URL` | — | API déployée interrogée par la page 6 de l'application |
 | `SERVICE`, `PORT` | `app`, 8501 / 8000 | image Docker uniquement |
 | `KAGGLE_USERNAME`, `KAGGLE_KEY` | — | mode Kaggle |
