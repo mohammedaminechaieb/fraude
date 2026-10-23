@@ -41,3 +41,22 @@ def require_df():
         st.info("Chargez d'abord un jeu de données depuis la page **1 · Données**.")
         st.stop()
     return df
+
+
+def get_prepared():
+    """Variables + séparation chronologique + préprocesseur, recalculés si les données changent."""
+    from fraud.features import build_features, chronological_split, feature_columns, make_preprocessor
+
+    df = require_df()
+    prep = st.session_state.get("prep")
+    if prep is None or prep["df_id"] != id(df):
+        with st.spinner("Construction des variables…"):
+            feats = build_features(df)
+            tr, va, te, info = chronological_split(feats)
+            num, cat = feature_columns(feats)
+            pre = make_preprocessor(num, cat).fit(tr)
+        prep = {"df_id": id(df), "feats": feats, "train": tr, "val": va, "test": te, "info": info,
+                "num": num, "cat": cat, "pre": pre}
+        st.session_state["prep"] = prep
+        st.session_state.pop("imbalance", None)
+    return prep

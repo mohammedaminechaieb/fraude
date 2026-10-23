@@ -11,12 +11,13 @@ if str(ROOT) not in sys.path:
 
 import streamlit as st  # noqa: E402
 
-from app.views import data_view  # noqa: E402
+from app.views import data_view, prep_view  # noqa: E402
 
 st.set_page_config(page_title="Détection de fraude explicable", page_icon="🛡️", layout="wide")
 
 PAGES = {
     "1 · Données": data_view.render,
+    "2 · Préparation": prep_view.render,
 }
 
 st.sidebar.title("🛡️ Fraude explicable")
