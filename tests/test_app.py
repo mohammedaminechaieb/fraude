@@ -62,3 +62,10 @@ def test_explain_page():
     at.sidebar.radio[0].set_value("5 · Explications (XAI)").run()
     assert not at.exception
     assert any("Codes motifs" in m.value for m in at.markdown)
+
+
+def test_api_page():
+    at = _app_with_bundle()
+    at.sidebar.radio[0].set_value("6 · API").run()
+    assert not at.exception
+    assert any("HTTP 200" in c.value for c in at.caption)
