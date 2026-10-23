@@ -1,6 +1,7 @@
 """État partagé de l'application Streamlit (données chargées, artefacts)."""
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -78,3 +79,33 @@ def require_bundle():
         st.info("Entraînez d'abord les modèles depuis la page **3 · Modélisation**.")
         st.stop()
     return bundle
+
+
+@st.cache_resource(show_spinner=False)
+def _autotrained_bundle(n_cards: int, seed: int):
+    """Entraînement unique, partagé par toutes les sessions du serveur."""
+    from fraud.pipeline import BUNDLE_PATH, save_bundle, train
+
+    bundle = train(fdata.load_synthetic(n_cards, seed))
+    save_bundle(bundle, BUNDLE_PATH)
+    return bundle
+
+
+def ensure_ready():
+    """Auto-entraînement : au premier lancement, données synthétiques + modèles sans clic.
+
+    Désactivable avec FRAUD_AUTOTRAIN=0. Si un modèle a déjà été entraîné (fichier d'artefacts, par
+    exemple au build Docker / Render), il est simplement chargé ; les données par défaut sont
+    régénérées à l'identique (même taille FRAUD_N_CARDS, même graine).
+    """
+    if os.environ.get("FRAUD_AUTOTRAIN", "1") == "0":
+        return
+    from fraud.config import DEFAULT_N_CARDS, RANDOM_STATE
+
+    if get_df() is None:
+        st.session_state["df"] = cached_synthetic(DEFAULT_N_CARDS, RANDOM_STATE)
+        st.session_state["source"] = f"synthétique ({DEFAULT_N_CARDS} cartes, chargé automatiquement)"
+    if get_bundle() is None:
+        with st.spinner("Premier lancement : entraînement automatique des modèles (environ 1 minute)…"):
+            st.session_state["bundle"] = _autotrained_bundle(DEFAULT_N_CARDS, RANDOM_STATE)
+        st.session_state["bundle_origin"] = "auto-entraînement au premier lancement"

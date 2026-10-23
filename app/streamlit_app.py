@@ -11,6 +11,7 @@ if str(ROOT) not in sys.path:
 
 import streamlit as st  # noqa: E402
 
+from app.common import ensure_ready  # noqa: E402
 from app.views import api_view, data_view, eval_view, explain_view, model_view, prep_view  # noqa: E402
 
 st.set_page_config(page_title="Détection de fraude explicable", page_icon="🛡️", layout="wide")
@@ -26,4 +27,5 @@ PAGES = {
 
 st.sidebar.title("🛡️ Fraude explicable")
 page = st.sidebar.radio("Module", list(PAGES))
+ensure_ready()
 PAGES[page]()

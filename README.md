@@ -34,6 +34,11 @@ Le téléchargement Kaggle utilise `kagglehub` et nécessite `~/.kaggle/kaggle.j
 mécanismes de fraude du simulateur (rafales nocturnes, catégories en ligne, montants élevés, part de fraudes
 discrètes).
 
+## Déploiement
+
+Streamlit Community Cloud (application), Render (API, `render.yaml`) ou Docker (`docker compose up --build`) :
+voir [DEPLOY.md](DEPLOY.md). Au premier lancement, l'application entraîne les modèles toute seule.
+
 ## Modules
 
 | # | Module | Code | Page |
