@@ -69,3 +69,17 @@ def test_api_page():
     at.sidebar.radio[0].set_value("6 · API").run()
     assert not at.exception
     assert any("HTTP 200" in c.value for c in at.caption)
+
+
+def test_autotrain_on_first_launch(monkeypatch, tmp_path):
+    """Sans clic : données et modèles prêts, toutes les pages fonctionnent."""
+    monkeypatch.setenv("FRAUD_AUTOTRAIN", "1")
+    monkeypatch.setattr("fraud.config.DEFAULT_N_CARDS", 80)
+    monkeypatch.setattr("fraud.pipeline.BUNDLE_PATH", tmp_path / "bundle.joblib")
+    at = AppTest.from_file(APP, default_timeout=300)
+    at.run()
+    assert not at.exception
+    assert (tmp_path / "bundle.joblib").exists()
+    for page in ["4 · Évaluation et seuil", "5 · Explications (XAI)", "6 · API"]:
+        at.sidebar.radio[0].set_value(page).run()
+        assert not at.exception

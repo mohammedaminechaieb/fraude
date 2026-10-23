@@ -1,0 +1,15 @@
+# Render Blueprint : New → Blueprint → choisir ce dépôt.
+# Seule l'API est déployée ici : l'application Streamlit demande ~700-950 Mo de RAM,
+# au-delà des 512 Mo de l'offre gratuite de Render (la déployer sur Streamlit Community Cloud).
+services:
+  - type: web
+    name: fraude-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python -m fraud.pipeline
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7

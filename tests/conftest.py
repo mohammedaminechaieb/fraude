@@ -3,6 +3,8 @@ import tempfile
 
 # les tests n'écrivent jamais dans artifacts/ du projet
 os.environ.setdefault("FRAUD_ARTIFACTS_DIR", tempfile.mkdtemp(prefix="fraud-test-"))
+# les parcours de l'application sont testés clic par clic ; l'auto-entraînement a son propre test
+os.environ.setdefault("FRAUD_AUTOTRAIN", "0")
 
 import pytest
 

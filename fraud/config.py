@@ -26,3 +26,5 @@ DEFAULT_DAILY_BUDGET = 50        # alertes/jour si la période est inconnue
 BUDGET_FRAUD_MULTIPLIER = 3      # capacité ≈ 3 × le nombre de fraudes attendu par jour
 SPLIT_FRACTIONS = (0.6, 0.2, 0.2)
 RANDOM_STATE = 42
+# taille du jeu synthétique par défaut (CLI et auto-entraînement de l'application)
+DEFAULT_N_CARDS = int(os.environ.get("FRAUD_N_CARDS", 400))

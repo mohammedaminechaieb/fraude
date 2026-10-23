@@ -7,7 +7,7 @@ from typing import IO
 import numpy as np
 import pandas as pd
 
-from .config import AMOUNT_COL, CARD_COL, KAGGLE_DATASET, REQUIRED_COLUMNS, TARGET, TIME_COL
+from .config import AMOUNT_COL, CARD_COL, DEFAULT_N_CARDS, KAGGLE_DATASET, REQUIRED_COLUMNS, TARGET, TIME_COL
 from .synthetic import generate_synthetic
 
 
@@ -69,7 +69,7 @@ def load_dataset(source: str = "synthetic", csv: str | Path | None = None,
     if source == "kaggle":
         return load_kaggle(n_cards, seed)
     if source == "synthetic":
-        return load_synthetic(n_cards or 400, seed)
+        return load_synthetic(n_cards or DEFAULT_N_CARDS, seed)
     raise ValueError(f"Source inconnue : {source}")
 
 
