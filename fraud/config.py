@@ -22,6 +22,7 @@ KAGGLE_DATASET = "kartik2112/fraud-detection"
 
 # Paramètres métier par défaut (montants en unités monétaires du jeu)
 DEFAULT_ALERT_COST = 10.0        # coût d'analyse d'une alerte (≈ 15 min d'analyste)
-DEFAULT_DAILY_BUDGET = 50        # alertes qu'une équipe peut examiner par jour
+DEFAULT_DAILY_BUDGET = 50        # alertes/jour si la période est inconnue
+BUDGET_FRAUD_MULTIPLIER = 3      # capacité ≈ 3 × le nombre de fraudes attendu par jour
 SPLIT_FRACTIONS = (0.6, 0.2, 0.2)
 RANDOM_STATE = 42

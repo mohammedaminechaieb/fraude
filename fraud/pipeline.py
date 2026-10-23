@@ -17,8 +17,10 @@ import pandas as pd
 from sklearn.metrics import average_precision_score, roc_auc_score
 
 from . import __version__
-from .config import AMOUNT_COL, ARTIFACTS_DIR, CARD_COL, CATEGORY_COL, RANDOM_STATE, TARGET, TIME_COL
+from .config import (AMOUNT_COL, ARTIFACTS_DIR, CARD_COL, CATEGORY_COL, DEFAULT_ALERT_COST, RANDOM_STATE, TARGET,
+                     TIME_COL)
 from .data import load_dataset
+from .evaluation import evaluate_model, suggest_daily_budget
 from .features import build_features, chronological_split, feature_columns, make_preprocessor
 from .imbalance import compare_strategies
 from .models import build_detectors
@@ -60,7 +62,7 @@ def train(df: pd.DataFrame, strategy: str = "auto", seed: int = RANDOM_STATE, pr
         for split in ("val", "test"):
             frames[split][f"score::{name}"] = det.score(X[split])
 
-    return {
+    bundle = {
         "version": __version__,
         "trained_at": datetime.now().isoformat(timespec="seconds"),
         "preprocessor": pre, "num_features": num, "cat_features": cat,
@@ -70,6 +72,17 @@ def train(df: pd.DataFrame, strategy: str = "auto", seed: int = RANDOM_STATE, pr
         "train_sample": X["train"].sample(min(2000, len(X["train"])), random_state=seed),
         "duration_seconds": time.perf_counter() - t0,
     }
+    set_decision(bundle)
+    return bundle
+
+
+def set_decision(bundle: dict, model: str = "LightGBM", alert_cost: float = DEFAULT_ALERT_COST,
+                 daily_budget: int | None = None) -> dict:
+    """Fixe le modèle de production et son seuil au coût minimal sur la validation."""
+    daily_budget = daily_budget or suggest_daily_budget(bundle["split_info"])
+    ev = evaluate_model(bundle["frames"]["val"], bundle["frames"]["test"], f"score::{model}", alert_cost, daily_budget)
+    bundle["decision"] = {"model": model, "alert_cost": alert_cost, "daily_budget": daily_budget, **ev}
+    return bundle["decision"]
 
 
 def model_names(bundle: dict) -> list[str]:
@@ -121,6 +134,13 @@ def main(argv=None):
         print(bundle["imbalance"][["label", "pr_auc_val", "roc_auc_val"]].to_string(index=False))
     print(f"Stratégie retenue : {bundle['strategy']}")
     print(comparison_table(bundle).to_string(index=False, float_format="%.4f"))
+    d = bundle["decision"]
+    t = d["test"]
+    print(f"Seuil {d['model']} (coût minimal en validation, Ca={d['alert_cost']}) : {d['threshold']:.5f}")
+    print(f"Budget : {d['daily_budget']} alertes/jour → k={t['k']} sur le test, "
+          f"précision@k {t['precision_at_k']:.3f}, rappel@k {t['recall_at_k']:.3f}")
+    print(f"Test : {t['alerts']} alertes, précision {t['precision']:.3f}, rappel {t['recall']:.3f}, "
+          f"F2 {t['f2']:.3f}, MCC {t['mcc']:.3f}, coût {t['cost']:,.0f} vs {t['cost_no_model']:,.0f} sans modèle")
     print(f"Artefacts : {save_bundle(bundle, args.out)}")
     return bundle
 

@@ -36,3 +36,22 @@ def test_model_page_trains():
     at.button[0].click().run()
     assert not at.exception
     assert any("PR-AUC" in str(df.value.columns.tolist()) for df in at.dataframe)
+
+
+def _app_with_bundle():
+    at = _app_with_data()
+    at.sidebar.radio[0].set_value("3 · Modélisation").run()
+    at.selectbox[0].set_value("none")
+    at.button[0].click().run()
+    assert not at.exception
+    return at
+
+
+def test_eval_page_reacts_to_sliders():
+    at = _app_with_bundle()
+    at.sidebar.radio[0].set_value("4 · Évaluation et seuil").run()
+    assert not at.exception
+    alerts_before = at.metric[0].value
+    at.select_slider[0].set_value(float(at.select_slider[0].options[-1])).run()  # seuil maximal → moins d'alertes
+    assert not at.exception
+    assert int(at.metric[0].value.replace(" ", "")) <= int(alerts_before.replace(" ", ""))
