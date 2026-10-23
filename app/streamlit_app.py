@@ -1,0 +1,24 @@
+"""Application Streamlit — détection de fraude explicable.
+
+Lancement : streamlit run app/streamlit_app.py
+"""
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import streamlit as st  # noqa: E402
+
+from app.views import data_view  # noqa: E402
+
+st.set_page_config(page_title="Détection de fraude explicable", page_icon="🛡️", layout="wide")
+
+PAGES = {
+    "1 · Données": data_view.render,
+}
+
+st.sidebar.title("🛡️ Fraude explicable")
+page = st.sidebar.radio("Module", list(PAGES))
+PAGES[page]()
