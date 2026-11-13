@@ -14,7 +14,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.neural_network import MLPRegressor
 
-from .config import RANDOM_STATE
+from .config import N_JOBS, RANDOM_STATE
 from .imbalance import correct_proba, default_classifier, resample
 
 
@@ -75,7 +75,7 @@ class IsolationForestDetector(Detector):
         self.seed = seed
 
     def fit(self, X, y=None):
-        self.model = IsolationForest(n_estimators=200, max_samples=256, random_state=self.seed, n_jobs=-1).fit(X)
+        self.model = IsolationForest(n_estimators=200, max_samples=256, random_state=self.seed, n_jobs=N_JOBS).fit(X)
         return self
 
     def score(self, X):
@@ -90,7 +90,7 @@ class LOFDetector(Detector):
         self.n_neighbors, self.max_train, self.seed = n_neighbors, max_train, seed
 
     def fit(self, X, y=None):
-        self.model = LocalOutlierFactor(n_neighbors=self.n_neighbors, novelty=True, n_jobs=-1)
+        self.model = LocalOutlierFactor(n_neighbors=self.n_neighbors, novelty=True, n_jobs=N_JOBS)
         self.model.fit(_sample(X, self.max_train, self.seed).to_numpy())
         return self
 

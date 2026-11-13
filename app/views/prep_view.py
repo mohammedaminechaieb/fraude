@@ -4,7 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from app.common import get_prepared
+from app.common import get_bundle, get_prepared, plot_sample
 from fraud.config import TARGET, TIME_COL
 from fraud.features import BEHAVIOR_FEATURES, FEATURE_DESCRIPTIONS
 from fraud.imbalance import compare_strategies
@@ -26,7 +26,8 @@ def render():
 
     feats = prep["feats"]
     var = st.selectbox("Distribution d'une variable comportementale", BEHAVIOR_FEATURES + ["distance_km"])
-    fig = px.histogram(feats.assign(classe=feats[TARGET].map({0: "légitime", 1: "fraude"})), x=var,
+    sample = plot_sample(feats)
+    fig = px.histogram(sample.assign(classe=sample[TARGET].map({0: "légitime", 1: "fraude"})), x=var,
                        color="classe", histnorm="probability density", barmode="overlay", nbins=60)
     st.plotly_chart(fig, width="stretch")
 
@@ -48,7 +49,15 @@ def render():
     st.markdown("Chaque stratégie est appliquée **au seul entraînement** puis évaluée sur la validation, qui garde la "
                 "proportion réelle de fraudes. Critère : PR-AUC. Après sous-échantillonnage, les probabilités sont "
                 "corrigées par Bayes : $p = \\beta p_s / (\\beta p_s - p_s + 1)$.")
-    if st.button("Comparer les stratégies (LightGBM)", type="primary"):
+    # la comparaison est déjà faite lors de l'entraînement (stratégie « auto ») : on la réutilise
+    bundle = get_bundle()
+    same_data = (bundle is not None and bundle.get("imbalance") is not None
+                 and bundle["split_info"]["train"]["n"] == len(prep["train"])
+                 and bundle["split_info"]["train"]["frauds"] == int(prep["train"][TARGET].sum()))
+    if same_data and "imbalance" not in st.session_state:
+        st.session_state["imbalance"] = bundle["imbalance"]
+        st.caption("Résultats calculés lors de l'entraînement des modèles (page 3).")
+    if st.button("Recalculer la comparaison (6 modèles LightGBM — lent sur un serveur gratuit)"):
         pre = prep["pre"]
         with st.spinner("Entraînement de 6 modèles…"):
             st.session_state["imbalance"] = compare_strategies(

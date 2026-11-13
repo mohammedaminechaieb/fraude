@@ -15,7 +15,7 @@ from imblearn.over_sampling import SMOTE
 from lightgbm import LGBMClassifier
 from sklearn.metrics import average_precision_score, roc_auc_score
 
-from .config import RANDOM_STATE
+from .config import N_JOBS, RANDOM_STATE
 
 STRATEGIES = ["none", "class_weight", "under_1:5", "under_1:10", "under_1:20", "smote"]
 STRATEGY_LABELS = {
@@ -31,7 +31,7 @@ STRATEGY_LABELS = {
 def default_classifier(**kw) -> LGBMClassifier:
     params = dict(n_estimators=300, learning_rate=0.05, num_leaves=31, min_child_samples=20,
                   subsample=0.8, subsample_freq=1, colsample_bytree=0.8, reg_lambda=1.0,
-                  random_state=RANDOM_STATE, verbose=-1, n_jobs=-1)
+                  random_state=RANDOM_STATE, verbose=-1, n_jobs=N_JOBS)
     params.update(kw)
     return LGBMClassifier(**params)
 
