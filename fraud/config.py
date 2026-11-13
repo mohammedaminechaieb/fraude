@@ -1,4 +1,5 @@
 """Constantes partagées : schéma Sparkov, chemins et paramètres métier par défaut."""
+import math
 import os
 from pathlib import Path
 
@@ -28,3 +29,24 @@ SPLIT_FRACTIONS = (0.6, 0.2, 0.2)
 RANDOM_STATE = 42
 # taille du jeu synthétique par défaut (CLI et auto-entraînement de l'application)
 DEFAULT_N_CARDS = int(os.environ.get("FRAUD_N_CARDS", 400))
+
+
+def available_cpus() -> int:
+    """Cœurs réellement utilisables : affinité et quota cgroup du conteneur (Streamlit Cloud, Docker…).
+
+    `os.cpu_count()` renvoie les cœurs de la machine hôte ; lancer autant de threads sur un conteneur
+    limité à une fraction de cœur ralentit énormément LightGBM. FRAUD_N_JOBS force la valeur.
+    """
+    if os.environ.get("FRAUD_N_JOBS"):
+        return max(1, int(os.environ["FRAUD_N_JOBS"]))
+    n = len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else (os.cpu_count() or 1)
+    try:
+        quota, period = open("/sys/fs/cgroup/cpu.max").read().split()[:2]
+        if quota != "max":
+            n = min(n, max(1, math.ceil(int(quota) / int(period))))
+    except (OSError, ValueError):
+        pass
+    return n
+
+
+N_JOBS = available_cpus()

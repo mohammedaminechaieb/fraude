@@ -109,3 +109,19 @@ def ensure_ready():
         with st.spinner("Premier lancement : entraînement automatique des modèles (environ 1 minute)…"):
             st.session_state["bundle"] = _autotrained_bundle(DEFAULT_N_CARDS, RANDOM_STATE)
         st.session_state["bundle_origin"] = "auto-entraînement au premier lancement"
+
+
+def plot_sample(df, n_normal: int = 20_000, seed: int = 42):
+    """Toutes les fraudes + un échantillon de transactions normales, pour les graphiques.
+
+    Envoyer les ~300 000 lignes au navigateur rend les histogrammes très lents ; les densités par
+    classe restent les mêmes avec un échantillon.
+    """
+    import pandas as pd
+
+    from fraud.config import TARGET
+
+    normal = df[df[TARGET] == 0]
+    if len(normal) > n_normal:
+        normal = normal.sample(n_normal, random_state=seed)
+    return pd.concat([df[df[TARGET] == 1], normal])

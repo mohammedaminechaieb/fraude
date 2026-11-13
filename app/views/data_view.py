@@ -2,7 +2,7 @@
 import plotly.express as px
 import streamlit as st
 
-from app.common import cached_csv, cached_kaggle, cached_synthetic, get_df
+from app.common import cached_csv, cached_kaggle, cached_synthetic, get_df, plot_sample
 from fraud import data as fdata
 from fraud.config import AMOUNT_COL, TARGET
 
@@ -59,15 +59,19 @@ def render():
     st.caption(f"Période : {s['start']:%Y-%m-%d} → {s['end']:%Y-%m-%d} ({s['n_days']} jours)")
 
     cal = fdata.with_calendar(df)
-    lab = cal[TARGET].map({0: "légitime", 1: "fraude"})
+    sample = plot_sample(cal)
+    lab = sample[TARGET].map({0: "légitime", 1: "fraude"})
 
     c1, c2 = st.columns(2)
-    fig = px.histogram(cal.assign(classe=lab), x=AMOUNT_COL, color="classe", log_x=False, nbins=80,
+    fig = px.histogram(sample.assign(classe=lab), x=AMOUNT_COL, color="classe", log_x=False, nbins=80,
                        histnorm="probability density", barmode="overlay", range_x=[0, 1500],
                        title="Distribution des montants par classe")
     c1.plotly_chart(fig, width="stretch")
-    fig = px.box(cal.assign(classe=lab), x="classe", y=AMOUNT_COL, log_y=True, title="Montants (échelle log)")
+    fig = px.box(sample.assign(classe=lab), x="classe", y=AMOUNT_COL, log_y=True, points=False,
+                 title="Montants (échelle log)")
     c2.plotly_chart(fig, width="stretch")
+    st.caption("Graphiques de montants : toutes les fraudes et un échantillon de 20 000 transactions normales ; "
+               "le tableau ci-dessous porte sur toutes les transactions.")
     st.dataframe(fdata.amount_stats_by_class(df).style.format("{:,.2f}"), width="stretch")
 
     freq = st.radio("Granularité", ["W", "MS"], format_func={"W": "semaine", "MS": "mois"}.get, horizontal=True)
